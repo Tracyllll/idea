@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>首页</title>
+    <link rel="stylesheet" type="text/css" th:href="@{/element/index.css}">
+    <style>
+        .el-table .warning-row {
+            background: oldlace;
+        }
+
+        .el-table .success-row {
+            background: #f0f9eb;
+        }
+    </style>
+</head>
+<body>
+<div id="app">
+    欢迎: <span v-text="name"></span> <a href="#">退出登录</a>
+    <el-tabs tab-position="left" style="height: 100%;">
+        <el-tab-pane label="">
+            <h1>欢迎使用小型进销存系统</h1>
+        </el-tab-pane>
+        <el-tab-pane label="销售">
+                <p style="font-size: 25px;font-weight: bold">添加销售：</p>
+                <p> </p>
+                <p>
+                    商品名称：
+                    <el-select v-model="productid" placeholder="请选择">
+                        <el-option
+                                v-for="item in productoption"
+                                :label="item.productName"
+                                :value="item.id">
+                        </el-option>
+                    </el-select>
+                </p>
+                <p>
+                    销售单价：<el-input v-model="price" placeholder="请输入单价" size="medium" style="width: 10%;display: inline-block"></el-input>
+                </p>
+                <p>
+                    销售数量：<el-input v-model="quantity" placeholder="请输入数量" size="medium" style="width: 10%;display: inline-block"></el-input>
+                </p>
+                <p>
+                    <el-button @click="addSale()">保存</el-button>
+                </p>
+        </el-tab-pane>
+        <el-tab-pane label="销售信息查询">
+            <p>
+                销售信息查询&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                排序方式：
+                <el-select v-model="value" placeholder="请选择">
+                    <el-option
+                            v-for="item in options"
+                            :key="item.value"
+                            :label="item.label"
+                            :value="item.value">
+                    </el-option>
+                </el-select>
+                <el-button @click="queryAll()">提交</el-button>
+            </p>
+            <el-table
+                    :data="tableData"
+                    style="width: 100%">
+                <el-table-column
+                        prop="id"
+                        label="id"
+                        width="180">
+                </el-table-column>
+                <el-table-column
+                        prop="productName"
+                        label="商品"
+                        width="180">
+                </el-table-column>
+                <el-table-column
+                        prop="price"
+                        label="单价"
+                        width="180">
+                </el-table-column>
+                <el-table-column
+                        prop="quantity"
+                        label="数量"
+                        width="180">
+                </el-table-column>
+                <el-table-column
+                        prop="totalprice"
+                        label="总价"
+                        width="180">
+                </el-table-column>
+                <el-table-column
+                        prop="saledate"
+                        label="销售日期"
+                        width="180">
+                </el-table-column>
+                <el-table-column
+                        prop="userName"
+                        label="销售员">
+                </el-table-column>
+            </el-table>
+            <el-pagination
+                    background
+                    layout="prev, pager, next"
+                    :current-page.sync="currentPage"
+                    :total="total">
+            </el-pagination>
+        </el-tab-pane>
+        <el-tab-pane label="查看库存">
+            <p>
+                销售信息查询&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                商品名称：
+                <el-select v-model="productid" placeholder="请选择">
+                    <el-option
+                            v-for="item in productoption"
+                            :label="item.productName"
+                            :value="item.id">
+                    </el-option>
+                </el-select>
+                <el-button @click="queryQuantity()">提交</el-button>
+            </p>
+            <p style="font-weight: bold" v-if="queryquantity!=''">
+                该商品的库存数量是:{{queryquantity}}
+            </p>
+        </el-tab-pane>
+    </el-tabs>
+</div>
+</body>
+<script th:src="@{js/vue.js}"></script>
+<script th:src="@{js/axios.min.js}"></script>
+<script th:src="@{element/index.js}"></script>
+<script>
+    var app = new Vue({
+        el:"#app",
+        data(){
+            return{
+                name:"",
+                tableData: [],
+                options: [{
+                    value: '1',
+                    label: '销售日期'
+                }, {
+                    value: '2',
+                    label: '单笔总价'
+                }],
+                value: '',
+                pageNo:'',
+                currentPage:1,
+                total:0,
+                productoption:[],
+                price:'',
+                quantity:'',
+                productid:'',
+                queryquantity:'',
+                userid:''
+            }
+        },
+        methods:{
+            queryAll(){
+                axios.get('queryAll',{params: {'pageNo':this.$data.pageNo,'sort':this.$data.value}})
+                .then(rs =>{
+                    this.$data.tableData=rs.data.list;
+                    this.$data.total=rs.data.navigateLastPage * 10
+                })
+            },
+            queryProduct(){
+                axios.get('queryProduct')
+                .then(rs =>{
+                    this.productoption=rs.data;
+                })
+            },
+            addSale(){
+                let params = new URLSearchParams();
+                params.append('productid',this.$data.productid);
+                params.append('price',this.$data.price);
+                params.append('quantity',this.$data.quantity);
+                params.append('userid',this.$data.userid);
+                axios.post('addSale',params)
+                .then(rs =>{
+                    if(rs.data==1){
+                        alert("成功")
+                        this.$data.productid="";
+                        this.$data.price="";
+                        this.$data.quantity="";
+                    }
+                })
+            },
+            queryQuantity(){
+                axios.get('queryQuantity',{params: {'productid':this.$data.productid}})
+                .then(rs=>{
+                    if(rs.data!=null){
+                        this.$data.queryquantity=rs.data;
+                        console.log(this.$data.queryquantity)
+                    }
+                })
+            }
+        },
+        watch: {
+            currentPage(oldV, newV) {
+                this.$data.pageNo=oldV;
+                this.queryAll();
+            }
+        },
+        created(){
+            this.$data.name=localStorage.getItem("name");
+            this.$data.userid=localStorage.getItem("userid");
+            this.queryAll();
+            this.queryProduct();
+        }
+    })
+</script>
+</html>

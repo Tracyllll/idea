@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="cn.bdqn.mapper.UserMapper">
+    <select id="dologin" resultType="java.util.Map">
+        select * from users
+        where
+        userName = #{param1}
+        and
+        passWord = #{param2}
+    </select>
+</mapper>

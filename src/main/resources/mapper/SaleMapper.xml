@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="cn.bdqn.mapper.SaleMapper">
+
+    <insert id="addSale">
+        INSERT INTO `sale` (
+          `price`,
+          `quantity`,
+          `totalPrice`,
+          `saleDate`,
+          `userId`,
+          `productId`
+        )
+        VALUES
+          (
+            #{price},
+            #{quantity},
+            #{totalPrice},
+            #{saleDate},
+            #{userId},
+            #{productId}
+          ) ;
+    </insert>
+
+    <update id="updateProduct">
+        UPDATE
+          `product`
+        SET
+          `quantity` = #{quantity}
+        WHERE `id` = #{id} ;
+
+    </update>
+
+    <select id="queryAll" resultType="java.util.Map">
+            SELECT
+            s.id,
+            p.`productName`,
+            s.`price`,
+            s.`quantity`,
+            s.`totalPrice` AS totalprice,
+            s.`saleDate` AS saledate,
+            u.`userName`
+            FROM `sale` AS s
+            INNER JOIN `product` AS p
+            ON p.`id`=s.`productId`
+            INNER JOIN `users` AS u
+            ON u.`id`=s.`userId`
+            <if test="sort == 1 and sort !=''">
+                    ORDER BY s.saleDate DESC
+            </if>
+            <if test="sort == 2 and sort !=''">
+                    ORDER BY s.totalprice DESC
+            </if>
+    </select>
+    <select id="queryProduct" resultType="java.util.Map">
+            select * from product
+    </select>
+    <select id="quantity" resultType="java.lang.Integer">
+        SELECT quantity FROM `product`
+        where
+        id=#{quantityId}
+    </select>
+</mapper>
